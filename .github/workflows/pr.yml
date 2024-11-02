@@ -1,0 +1,32 @@
+name: "PR Verify"
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+    build:
+        name: "PR Verify"
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Setup .NET Core
+              uses: actions/setup-dotnet@v4
+              with:
+                dotnet-version: 8.x
+
+            - name: Restore
+              run: dotnet restore
+
+            - name: Build
+              run: dotnet build --no-restore --configuration Release
+
+            - name: Test
+              run: dotnet test --configuration Release --no-build
+
+            - name: Format
+              run: dotnet format -v detailed --verify-no-changes
