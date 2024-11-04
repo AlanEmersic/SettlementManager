@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using SettlementManager.Domain.Settlements;
 
-namespace SettlementManager.Infrastructure.Persistence.Configurations;
+namespace SettlementManager.Infrastructure.Persistence.Database.Configurations;
 
 internal sealed class CountryConfiguration : IEntityTypeConfiguration<Country>
 {
