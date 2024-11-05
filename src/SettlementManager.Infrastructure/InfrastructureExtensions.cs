@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.OpenApi.Models;
 using SettlementManager.Infrastructure.Persistence.Database;
 
 namespace SettlementManager.Infrastructure;
@@ -13,16 +14,32 @@ public static class InfrastructureExtensions
 
         services.AddServices();
 
+        services.AddControllers();
+        services.AddEndpointsApiExplorer();
+
+        services.AddSwagger();
+
+        services.AddProblemDetails();
+
         return services;
     }
 
     public static IApplicationBuilder UseInfrastructure(this IApplicationBuilder app)
     {
+        app.UseCors(builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader().WithOrigins("https://localhost:7254"));
         app.UseExceptionHandler();
         app.UseHttpsRedirection();
 
         app.UseStaticFiles();
-        app.UseAntiforgery();
+        app.UseRouting();
+
+        app.UseSwagger();
+        app.UseSwaggerUI();
+
+        app.UseEndpoints(builder =>
+        {
+            builder.MapControllers();
+        });
 
         return app;
     }
@@ -33,9 +50,13 @@ public static class InfrastructureExtensions
 
         services.AddProblemDetails();
         services.AddHttpContextAccessor();
+    }
 
-        services
-            .AddRazorComponents()
-            .AddInteractiveServerComponents();
+    private static void AddSwagger(this IServiceCollection services)
+    {
+        services.AddSwaggerGen(options =>
+        {
+            options.SwaggerDoc("v1", new OpenApiInfo { Title = "Settlement Manager API", Version = "v1" });
+        });
     }
 }

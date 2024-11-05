@@ -7,16 +7,15 @@ namespace SettlementManager.Infrastructure.Persistence.Settlements.Queries.GetSe
 
 public sealed class SettlementPagedResponse
 {
-    public IReadOnlyList<SettlementDto> Settlements { get; }
-    public int PageNumber { get; }
-    public int PageSize { get; }
-    public int PageCount { get; }
-    public int TotalCount { get; }
-    public bool HasNextPage { get; }
-    public bool HasPreviousPage { get; }
+    public IReadOnlyList<SettlementDto> Settlements { get; init; }
+    public int PageNumber { get; init; }
+    public int PageSize { get; init; }
+    public int PageCount { get; init; }
+    public int TotalCount { get; init; }
+    public bool HasNextPage { get; init; }
+    public bool HasPreviousPage { get; init; }
 
-    public SettlementPagedResponse(IReadOnlyList<SettlementDto> settlements, int pageNumber, int pageSize,
-        int pageCount, int totalCount, bool hasNextPage, bool hasPreviousPage)
+    public SettlementPagedResponse(IReadOnlyList<SettlementDto> settlements, int pageNumber, int pageSize, int pageCount, int totalCount, bool hasNextPage, bool hasPreviousPage)
     {
         Settlements = settlements;
         PageNumber = pageNumber;
@@ -27,23 +26,21 @@ public sealed class SettlementPagedResponse
         HasPreviousPage = hasPreviousPage;
     }
 
-    public static async Task<SettlementPagedResponse> CreateAsync(IQueryable<Settlement> query, int pageNumber,
-        int pageSize)
+    public static async Task<SettlementPagedResponse> CreateAsync(IQueryable<Settlement> query, int pageNumber, int pageSize, CancellationToken cancellationToken = default)
     {
-        int totalCount = await query.CountAsync();
+        int totalCount = await query.CountAsync(cancellationToken);
         int pageCount = (int)Math.Ceiling(totalCount / (double)pageSize);
         int page = pageNumber <= 1 ? 1 : pageNumber;
         bool hasNextPage = pageNumber * pageSize < totalCount;
         bool hasPreviousPage = pageNumber > 1;
 
         List<SettlementDto> settlements = await query
+            .OrderBy(x => x.Id)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .OrderBy(x => x.Id)
             .Select(x => x.MapToDto())
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
 
-        return new SettlementPagedResponse(settlements, pageNumber, pageSize, pageCount,
-            totalCount, hasNextPage, hasPreviousPage);
+        return new SettlementPagedResponse(settlements, pageNumber, pageSize, pageCount, totalCount, hasNextPage, hasPreviousPage);
     }
 }
