@@ -1,10 +1,11 @@
-{
+﻿{
   "profiles": {
-    "SettlementManager.Web": {
+    "Swagger": {
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,
-      "applicationUrl": "https://localhost:7254;http://localhost:5009",
+      "launchUrl": "swagger",
+      "applicationUrl": "https://localhost:7288;http://localhost:5198",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }

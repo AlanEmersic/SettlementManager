@@ -15,8 +15,7 @@ internal sealed class GetSettlementsQueryHandler : IRequestHandler<GetSettlement
         this.dbContext = dbContext;
     }
 
-    public async Task<ErrorOr<SettlementPagedResponse>> Handle(GetSettlementsQuery query,
-        CancellationToken cancellationToken)
+    public async Task<ErrorOr<SettlementPagedResponse>> Handle(GetSettlementsQuery query, CancellationToken cancellationToken)
     {
         IQueryable<Settlement> settlementsQuery = dbContext
             .Settlements
@@ -29,7 +28,7 @@ internal sealed class GetSettlementsQueryHandler : IRequestHandler<GetSettlement
                 .Where(x => x.Name.Contains(query.Search));
         }
 
-        SettlementPagedResponse settlements = await SettlementPagedResponse.CreateAsync(settlementsQuery, query.PageNumber, query.PageSize);
+        SettlementPagedResponse settlements = await SettlementPagedResponse.CreateAsync(settlementsQuery, query.PageNumber, query.PageSize, cancellationToken);
 
         return settlements;
     }
