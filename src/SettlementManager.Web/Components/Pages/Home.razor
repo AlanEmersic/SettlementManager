@@ -1,6 +1,5 @@
 ﻿@page "/"
 @using SettlementManager.Application.Settlements.DTO
-@using SettlementManager.Infrastructure.Persistence.Settlements.Queries.GetSettlements
 @using SettlementManager.Web.Services.Settlements
 @rendermode InteractiveServer
 @inject ISettlementService SettlementService
@@ -22,6 +21,8 @@
         <label for="pageSizeSlider">Page Size: @SettlementService.PageSize</label>
         <input type="range" id="pageSizeSlider" min="5" max="50" step="5" @onchange="SettlementService.ChangePageSize" value="@SettlementService.PageSize"/>
     </div>
+
+    <button class="btn btn-primary mb-3" @onclick="SettlementService.OpenAddSettlementModal">Add New Settlement</button>
 
     <table class="table table-striped table-bordered table-hover">
         <thead>
@@ -73,6 +74,64 @@ else
     <p>No settlements found.</p>
 }
 
+@if (SettlementService.IsAddSettlementModalOpen)
+{
+    <div class="modal show d-block" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add New Settlement</h5>
+                    <button type="button" class="btn btn-danger" @onclick="SettlementService.CloseAddSettlementModal">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <EditForm Model="SettlementService.NewSettlement">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary />
+
+                        <div class="form-group">
+                            @* <label for="countryId">Country</label> *@
+                            @* <InputNumber id="countryId" class="form-control" @bind-Value="SettlementService.NewSettlement.CountryId" /> *@
+                            <label for="countrySelect">Country</label>
+                            <select id="countrySelect" class="form-control" @bind="@SettlementService.NewSettlement.CountryId">
+                                @if (SettlementService.Countries is not null)
+                                {
+                                    @foreach (var country in SettlementService.Countries)
+                                    {
+                                        <option value="@country.Id">@country.Name</option>
+                                    }
+                                }
+                                else
+                                {
+                                    <option disabled>Loading countries...</option>
+                                }
+                            </select>
+                            <ValidationMessage For="@(() => SettlementService.NewSettlement.CountryId)" />
+                        </div>
+
+                        <div class="form-group">
+                            <label for="name">Settlement Name</label>
+                            <InputText id="name" class="form-control" @bind-Value="SettlementService.NewSettlement.Name" />
+                            <ValidationMessage For="@(() => SettlementService.NewSettlement.Name)" />
+                        </div>
+
+                        <div class="form-group">
+                            <label for="postalCode">Postal Code</label>
+                            <InputText id="postalCode" class="form-control" @bind-Value="SettlementService.NewSettlement.PostalCode" />
+                            <ValidationMessage For="@(() => SettlementService.NewSettlement.PostalCode)" />
+                        </div>
+                    </EditForm>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" @onclick="SettlementService.SaveSettlement">Save</button>
+                    <button type="button" class="btn btn-secondary" @onclick="SettlementService.CloseAddSettlementModal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
 
     protected override async Task OnInitializedAsync()
@@ -80,4 +139,5 @@ else
         SettlementService.OnDataChanged = StateHasChanged;
         await SettlementService.GetSettlementsAsync(SettlementService.Search, SettlementService.PageNumber, SettlementService.PageSize);
     }
+
 }
