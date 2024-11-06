@@ -1,13 +1,7 @@
-﻿using ErrorOr;
-using Microsoft.AspNetCore.Components;
-using SettlementManager.Application.Settlements.DTO;
+﻿using SettlementManager.Application.Settlements.DTO;
 using SettlementManager.Application.Settlements.Requests;
 using SettlementManager.Infrastructure.Persistence.Settlements.Queries.GetSettlements;
 using SettlementManager.Web.Models;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Text.Json;
 
 namespace SettlementManager.Web.Services.Settlements;
 

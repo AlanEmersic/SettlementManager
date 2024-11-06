@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Components;
-using SettlementManager.Application.Settlements.DTO;
+﻿using SettlementManager.Application.Settlements.DTO;
 using SettlementManager.Infrastructure.Persistence.Settlements.Queries.GetSettlements;
 using SettlementManager.Web.Models;
 
