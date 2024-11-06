@@ -21,8 +21,10 @@ public sealed class SettlementService : ISettlementService
     public SettlementPagedResponse? CurrentResponse { get; set; }
     public IReadOnlyList<CountryDto>? Countries { get; set; } = new List<CountryDto>();
     public AddSettlementModel NewSettlement { get; set; } = new();
-    public SettlementDto SelectedSettlement { get; set; }
+    public EditSettlementModel EditSettlement { get; set; } = null!;
+    public SettlementDto SelectedSettlement { get; set; } = null!;
     public bool IsAddSettlementModalOpen { get; set; }
+    public bool IsEditSettlementModalOpen { get; set; }
     public bool IsDeleteConfirmationModalOpen { get; set; }
 
     private readonly HttpClient httpClient;
@@ -82,6 +84,27 @@ public sealed class SettlementService : ISettlementService
             if (responseMessage.IsSuccessStatusCode)
             {
                 CloseAddSettlementModal();
+                await GetSettlementsAsync(Search, PageNumber, PageSize);
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, ex.Message);
+        }
+    }
+
+    private async Task UpdateSettlementAsync()
+    {
+        try
+        {
+            string requestUri = "api/Settlements";
+            UpdateSettlementRequest request = new(EditSettlement.Id, EditSettlement.CountryId, EditSettlement.Name, EditSettlement.PostalCode);
+
+            HttpResponseMessage responseMessage = await httpClient.PutAsJsonAsync(requestUri, request);
+
+            if (responseMessage.IsSuccessStatusCode)
+            {
+                CloseEditSettlementModal();
             }
 
             await GetSettlementsAsync(Search, PageNumber, PageSize);
@@ -92,7 +115,7 @@ public sealed class SettlementService : ISettlementService
         }
     }
 
-    public async Task DeleteSettlementAsync(int id)
+    private async Task DeleteSettlementAsync(int id)
     {
         try
         {
@@ -177,6 +200,32 @@ public sealed class SettlementService : ISettlementService
         NewSettlement = new AddSettlementModel();
     }
 
+    public async Task OpenEditSettlementModal(SettlementDto settlement)
+    {
+        if (Countries is null || Countries.Count == 0)
+        {
+            Countries = await GetCountriesAsync();
+        }
+
+        EditSettlement = new EditSettlementModel(settlement.Id, settlement.Name, settlement.PostalCode, settlement.Country.Id);
+        IsEditSettlementModalOpen = true;
+        OnDataChanged?.Invoke();
+    }
+
+    public void CloseEditSettlementModal()
+    {
+        IsEditSettlementModalOpen = false;
+        OnDataChanged?.Invoke();
+    }
+
+    public async Task SaveEditedSettlement()
+    {
+        IsEditSettlementModalOpen = false;
+
+        await UpdateSettlementAsync();
+        OnDataChanged?.Invoke();
+    }
+
     public void OpenDeleteConfirmationModal(SettlementDto settlement)
     {
         SelectedSettlement = settlement;
@@ -190,11 +239,11 @@ public sealed class SettlementService : ISettlementService
         OnDataChanged?.Invoke();
     }
 
-    public async Task DeleteSettlement(int id)
+    public async Task DeleteSettlement()
     {
         IsDeleteConfirmationModalOpen = false;
 
-        await DeleteSettlementAsync(id);
+        await DeleteSettlementAsync(SelectedSettlement.Id);
         OnDataChanged?.Invoke();
     }
 }

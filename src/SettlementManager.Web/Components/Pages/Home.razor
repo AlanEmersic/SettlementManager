@@ -8,6 +8,13 @@
 
 <h3>Settlements</h3>
 
+<div class="input-group mb-3" style="max-width: 300px">
+    <input class="form-control" @bind="SettlementService.Search" type="text" placeholder="Search settlements...">
+    <div class="input-group-append">
+        <button class="btn btn-outline-primary mx-2" @onclick="SettlementService.SearchSettlements">Search</button>
+    </div>
+</div>
+
 @if (SettlementService.CurrentResponse is null || SettlementService.CurrentResponse.TotalCount == 0)
 {
     <button class="btn btn-primary mb-3" @onclick="SettlementService.OpenAddSettlementModal">Add New Settlement</button>
@@ -15,13 +22,6 @@
 
 @if (SettlementService.CurrentResponse is not null && SettlementService.CurrentResponse.TotalCount > 0)
 {
-    <div class="input-group mb-3" style="max-width: 300px">
-        <input class="form-control" @bind="SettlementService.Search" type="text" placeholder="Search settlements...">
-        <div class="input-group-append">
-            <button class="btn btn-outline-primary mx-2" @onclick="SettlementService.SearchSettlements">Search</button>
-        </div>
-    </div>
-
     <div class="mb-3">
         <label for="pageSizeSlider">Page Size: @SettlementService.PageSize</label>
         <input type="range" id="pageSizeSlider" min="5" max="50" step="5" @onchange="SettlementService.ChangePageSize" value="@SettlementService.PageSize"/>
@@ -48,6 +48,7 @@
                 <td>@settlement.Name</td>
                 <td>@settlement.PostalCode</td>
                 <td>
+                    <button class="btn btn-warning btn-sm" @onclick="() => SettlementService.OpenEditSettlementModal(settlement)">Edit</button>
                     <button class="btn btn-danger btn-sm" @onclick="() => SettlementService.OpenDeleteConfirmationModal(settlement)">Delete</button>
                 </td>
             </tr>
@@ -139,6 +140,63 @@ else
     </div>
 }
 
+@if (SettlementService.IsEditSettlementModalOpen)
+{
+    <div class="modal show d-block" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Settlement</h5>
+                    <button type="button" class="btn btn-danger" @onclick="SettlementService.CloseEditSettlementModal">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <EditForm Model="SettlementService.EditSettlement" OnValidSubmit="SettlementService.SaveEditedSettlement">
+                        <DataAnnotationsValidator/>
+                        <ValidationSummary/>
+
+                        <div class="form-group">
+                            <label for="countrySelect">Country</label>
+                            <select id="countrySelect" class="form-control" @bind="@SettlementService.EditSettlement.CountryId">
+                                @if (SettlementService.Countries is not null)
+                                {
+                                    @foreach (var country in SettlementService.Countries)
+                                    {
+                                        <option value="@country.Id">@country.Name</option>
+                                    }
+                                }
+                                else
+                                {
+                                    <option disabled>Loading countries...</option>
+                                }
+                            </select>
+                            <ValidationMessage For="@(() => SettlementService.EditSettlement.CountryId)"/>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="name">Settlement Name</label>
+                            <InputText id="name" class="form-control" @bind-Value="SettlementService.EditSettlement.Name"/>
+                            <ValidationMessage For="@(() => SettlementService.EditSettlement.Name)"/>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="postalCode">Postal Code</label>
+                            <InputText id="postalCode" class="form-control" @bind-Value="SettlementService.EditSettlement.PostalCode"/>
+                            <ValidationMessage For="@(() => SettlementService.EditSettlement.PostalCode)"/>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                            <button type="button" class="btn btn-secondary" @onclick="SettlementService.CloseEditSettlementModal">Cancel</button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 @if (SettlementService.IsDeleteConfirmationModalOpen)
 {
     <div class="modal show d-block" tabindex="-1" role="dialog">
@@ -154,7 +212,7 @@ else
                     <p>Are you sure you want to delete <span style="font-weight: bold">@SettlementService.SelectedSettlement.Name</span> settlement?</p>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-danger" @onclick="() => SettlementService.DeleteSettlement(SettlementService.SelectedSettlement.Id)">Delete</button>
+                    <button type="button" class="btn btn-danger" @onclick="SettlementService.DeleteSettlement">Delete</button>
                     <button type="button" class="btn btn-secondary" @onclick="SettlementService.CloseDeleteConfirmationModal">Cancel</button>
                 </div>
             </div>

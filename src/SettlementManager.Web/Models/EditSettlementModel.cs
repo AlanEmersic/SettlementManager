@@ -2,11 +2,11 @@
 
 namespace SettlementManager.Web.Models;
 
-public sealed record AddSettlementModel
+public sealed record EditSettlementModel
 {
-    [Required]
-    [Range(1, int.MaxValue, ErrorMessage = "Value for CountryId must be greater than 0")]
-    public int CountryId { get; set; }
+    [Required] public int Id { get; set; }
+
+    [Required] public int CountryId { get; set; }
 
     [Required]
     [RegularExpression("^[a-zA-Z ]+$", ErrorMessage = "Only letters are allowed")]
@@ -19,4 +19,12 @@ public sealed record AddSettlementModel
     [MinLength(1)]
     [MaxLength(15)]
     public string PostalCode { get; set; } = null!;
+
+    public EditSettlementModel(int id, string name, string postalCode, int countryId)
+    {
+        Id = id;
+        Name = name;
+        PostalCode = postalCode;
+        CountryId = countryId;
+    }
 }
