@@ -2,6 +2,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using SettlementManager.Application.Settlements.Commands.CreateSettlement;
+using SettlementManager.Application.Settlements.Commands.DeleteSettlement;
 using SettlementManager.Application.Settlements.Mappings;
 using SettlementManager.Application.Settlements.Requests;
 using SettlementManager.Infrastructure.Persistence.Settlements.Queries.GetSettlements;
@@ -34,5 +35,14 @@ public sealed class SettlementsController : ApiController
         ErrorOr<Created> result = await mediator.Send(command);
 
         return result.Match(_ => CreatedAtAction(nameof(CreateSettlement), default), Problem);
+    }
+
+    [HttpDelete]
+    public async Task<IActionResult> DeleteSettlement(int id)
+    {
+        DeleteSettlementCommand command = new(id);
+        ErrorOr<Deleted> result = await mediator.Send(command);
+
+        return result.Match(_ => NoContent(), Problem);
     }
 }
