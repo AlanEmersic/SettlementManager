@@ -1,8 +1,12 @@
 ﻿using ErrorOr;
 using Microsoft.AspNetCore.Components;
+using SettlementManager.Application.Settlements.DTO;
+using SettlementManager.Application.Settlements.Requests;
 using SettlementManager.Infrastructure.Persistence.Settlements.Queries.GetSettlements;
+using SettlementManager.Web.Models;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Text.Json;
 
 namespace SettlementManager.Web.Services.Settlements;
@@ -15,6 +19,9 @@ public sealed class SettlementService : ISettlementService
 
     public Action? OnDataChanged { get; set; } = delegate { };
     public SettlementPagedResponse? CurrentResponse { get; set; }
+    public IReadOnlyList<CountryDto>? Countries { get; set; } = new List<CountryDto>();
+    public AddSettlementModel NewSettlement { get; set; } = new();
+    public bool IsAddSettlementModalOpen { get; set; }
 
     private readonly HttpClient httpClient;
     private readonly ILogger<SettlementService> logger;
@@ -40,6 +47,46 @@ public sealed class SettlementService : ISettlementService
         {
             logger.LogError(ex, ex.Message);
             return null;
+        }
+    }
+
+    public async Task<IReadOnlyList<CountryDto>?> GetCountriesAsync()
+    {
+        try
+        {
+            string requestUri = "api/Countries";
+
+            IReadOnlyList<CountryDto>? response = await httpClient.GetFromJsonAsync<IReadOnlyList<CountryDto>?>(requestUri);
+            Countries = response;
+
+            return response;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, ex.Message);
+            return null;
+        }
+    }
+
+    public async Task SaveSettlement()
+    {
+        try
+        {
+            string requestUri = "api/Settlements";
+            CreateSettlementRequest request = new(NewSettlement.CountryId, NewSettlement.Name, NewSettlement.PostalCode);
+
+            HttpResponseMessage resposne = await httpClient.PostAsJsonAsync(requestUri, request!);
+
+            if (resposne.IsSuccessStatusCode)
+            {
+                CloseAddSettlementModal();
+            }
+
+            await GetSettlementsAsync(Search, PageNumber, PageSize);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, ex.Message);
         }
     }
 
@@ -92,5 +139,18 @@ public sealed class SettlementService : ISettlementService
 
         await GetSettlementsAsync(Search, PageNumber, PageSize);
         OnDataChanged?.Invoke();
+    }
+
+    public async Task OpenAddSettlementModal()
+    {
+        IsAddSettlementModalOpen = true;
+
+        await GetCountriesAsync();
+    }
+
+    public void CloseAddSettlementModal()
+    {
+        IsAddSettlementModalOpen = false;
+        NewSettlement = new AddSettlementModel();
     }
 }
