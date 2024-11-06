@@ -59,27 +59,35 @@ namespace SettlementManager.Infrastructure.Persistence.Database.Migrations
             migrationBuilder.Sql(@"
                 CREATE TRIGGER SetCountriesUpdatedAtOnUpdate
                 ON Countries
-                AFTER UPDATE
+                INSTEAD OF UPDATE
                 AS
                 BEGIN
                     UPDATE Countries
-                    SET UpdatedAt = GETUTCDATE()
+                    SET
+                        Name = i.Name,
+                        UpdatedAt = GETUTCDATE()
                     FROM Countries c
-                    INNER JOIN inserted i ON c.Id = i.Id;
+                    INNER JOIN inserted i ON c.Id = i.Id
+                    WHERE c.Id = c.Id;
                 END
             ");
 
             migrationBuilder.Sql(@"
                 CREATE TRIGGER SetSettlementUpdatedAtOnUpdate
                 ON Settlements
-                AFTER UPDATE
+                INSTEAD OF UPDATE
                 AS
                 BEGIN
                     UPDATE Settlements
-                    SET UpdatedAt = GETUTCDATE()
+                    SET
+                        CountryId = i.CountryId,
+                        Name = i.Name,
+                        PostalCode = i.PostalCode,
+                        UpdatedAt = GETUTCDATE()
                     FROM Settlements s
-                    INNER JOIN inserted i ON s.Id = i.Id;
-                END
+                    INNER JOIN inserted i ON s.Id = i.Id
+                    WHERE s.Id = i.Id;
+                END;
             ");
         }
 

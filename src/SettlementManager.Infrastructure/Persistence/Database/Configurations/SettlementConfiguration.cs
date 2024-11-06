@@ -18,8 +18,7 @@ internal sealed class SettlementConfiguration : IEntityTypeConfiguration<Settlem
             .HasDefaultValueSql("GetUtcDate()")
             .ValueGeneratedOnAdd();
 
-        builder.Property(x => x.UpdatedAt)
-            .ValueGeneratedOnUpdate();
+        builder.Property(x => x.UpdatedAt);
 
         builder.Property(x => x.Name)
             .IsRequired()
@@ -33,5 +32,7 @@ internal sealed class SettlementConfiguration : IEntityTypeConfiguration<Settlem
             .HasOne(x => x.Country)
             .WithMany(x => x.Settlements)
             .HasForeignKey(x => x.CountryId);
+
+        builder.ToTable(tb => tb.HasTrigger("SetSettlementUpdatedAtOnUpdate"));
     }
 }

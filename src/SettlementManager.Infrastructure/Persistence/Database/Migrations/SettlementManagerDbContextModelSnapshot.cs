@@ -47,12 +47,16 @@ namespace SettlementManager.Infrastructure.Persistence.Database.Migrations
                         .HasColumnType("rowversion");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .ValueGeneratedOnUpdate()
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Countries");
+                    b.ToTable("Countries", t =>
+                        {
+                            t.HasTrigger("SetCountriesUpdatedAtOnUpdate");
+                        });
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
                 });
 
             modelBuilder.Entity("SettlementManager.Domain.Settlements.Settlement", b =>
@@ -88,14 +92,18 @@ namespace SettlementManager.Infrastructure.Persistence.Database.Migrations
                         .HasColumnType("rowversion");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .ValueGeneratedOnUpdate()
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
                     b.HasIndex("CountryId");
 
-                    b.ToTable("Settlements");
+                    b.ToTable("Settlements", t =>
+                        {
+                            t.HasTrigger("SetSettlementUpdatedAtOnUpdate");
+                        });
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
                 });
 
             modelBuilder.Entity("SettlementManager.Domain.Settlements.Settlement", b =>
