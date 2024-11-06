@@ -1,13 +1,7 @@
-﻿using ErrorOr;
-using Microsoft.AspNetCore.Components;
-using SettlementManager.Application.Settlements.DTO;
+﻿using SettlementManager.Application.Settlements.DTO;
 using SettlementManager.Application.Settlements.Requests;
 using SettlementManager.Infrastructure.Persistence.Settlements.Queries.GetSettlements;
 using SettlementManager.Web.Models;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Text.Json;
 
 namespace SettlementManager.Web.Services.Settlements;
 
@@ -178,10 +172,10 @@ public sealed class SettlementService : ISettlementService
         OnDataChanged?.Invoke();
     }
 
-    public async Task ChangePageSize(ChangeEventArgs changeEvent)
+    public async Task ChangePageSize(int pageSize)
     {
         PageNumber = 1;
-        PageSize = int.Parse(changeEvent.Value!.ToString()!);
+        PageSize = pageSize;
 
         await GetSettlementsAsync(Search, PageNumber, PageSize);
         OnDataChanged?.Invoke();

@@ -1,0 +1,70 @@
+﻿@using SettlementManager.Application.Settlements.DTO
+@using SettlementManager.Web.Models
+
+@if (IsOpen)
+{
+    <div class="modal show d-block" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add New Settlement</h5>
+                    <button type="button" class="btn btn-danger" @onclick="OnClose">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <EditForm Model="NewSettlement">
+                        <DataAnnotationsValidator/>
+                        <ValidationSummary/>
+
+                        <div class="form-group">
+                            <label for="countrySelect">Country</label>
+                            <select id="countrySelect" class="form-control" @bind="@NewSettlement.CountryId">
+                                @if (Countries is not null)
+                                {
+                                    @foreach (var country in Countries)
+                                    {
+                                        <option value="@country.Id">@country.Name</option>
+                                    }
+                                }
+                                else
+                                {
+                                    <option disabled>Loading countries...</option>
+                                }
+                            </select>
+                            <ValidationMessage For="@(() => NewSettlement.CountryId)"/>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="name">Settlement Name</label>
+                            <InputText id="name" class="form-control" @bind-Value="NewSettlement.Name"/>
+                            <ValidationMessage For="@(() => NewSettlement.Name)"/>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="postalCode">Postal Code</label>
+                            <InputText id="postalCode" class="form-control" @bind-Value="NewSettlement.PostalCode"/>
+                            <ValidationMessage For="@(() => NewSettlement.PostalCode)"/>
+                        </div>
+                    </EditForm>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" @onclick="OnSave">Save</button>
+                    <button type="button" class="btn btn-secondary" @onclick="OnCancel">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool IsOpen { get; set; }
+
+    [Parameter] public AddSettlementModel NewSettlement { get; set; } = null!;
+
+    [Parameter] public IReadOnlyList<CountryDto>? Countries { get; set; } = [];
+
+    [Parameter] public EventCallback OnSave { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+}

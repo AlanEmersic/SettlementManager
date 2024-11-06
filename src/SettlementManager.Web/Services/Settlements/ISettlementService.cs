@@ -1,6 +1,4 @@
-﻿using ErrorOr;
-using Microsoft.AspNetCore.Components;
-using SettlementManager.Application.Settlements.DTO;
+﻿using SettlementManager.Application.Settlements.DTO;
 using SettlementManager.Infrastructure.Persistence.Settlements.Queries.GetSettlements;
 using SettlementManager.Web.Models;
 
@@ -26,7 +24,7 @@ public interface ISettlementService
     Task NextPage();
     Task PreviousPage();
     Task LastPage();
-    Task ChangePageSize(ChangeEventArgs changeEvent);
+    Task ChangePageSize(int pageSize);
 
     Task OpenAddSettlementModal();
     void CloseAddSettlementModal();
