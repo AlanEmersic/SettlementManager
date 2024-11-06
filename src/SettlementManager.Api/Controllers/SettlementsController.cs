@@ -3,6 +3,7 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using SettlementManager.Application.Settlements.Commands.CreateSettlement;
 using SettlementManager.Application.Settlements.Commands.DeleteSettlement;
+using SettlementManager.Application.Settlements.Commands.UpdateSettlementCommand;
 using SettlementManager.Application.Settlements.Mappings;
 using SettlementManager.Application.Settlements.Requests;
 using SettlementManager.Infrastructure.Persistence.Settlements.Queries.GetSettlements;
@@ -35,6 +36,15 @@ public sealed class SettlementsController : ApiController
         ErrorOr<Created> result = await mediator.Send(command);
 
         return result.Match(_ => CreatedAtAction(nameof(CreateSettlement), default), Problem);
+    }
+
+    [HttpPut]
+    public async Task<IActionResult> UpdateSettlement([FromBody] UpdateSettlementRequest request)
+    {
+        UpdateSettlementCommand command = request.MapToCommand();
+        ErrorOr<Updated> result = await mediator.Send(command);
+
+        return result.Match(_ => NoContent(), Problem);
     }
 
     [HttpDelete]

@@ -18,8 +18,7 @@ internal sealed class CountryConfiguration : IEntityTypeConfiguration<Country>
             .HasDefaultValueSql("GetUtcDate()")
             .ValueGeneratedOnAdd();
 
-        builder.Property(x => x.UpdatedAt)
-            .ValueGeneratedOnUpdate();
+        builder.Property(x => x.UpdatedAt);
 
         builder.Property(x => x.Name)
             .IsRequired()
@@ -29,5 +28,7 @@ internal sealed class CountryConfiguration : IEntityTypeConfiguration<Country>
             .HasMany(x => x.Settlements)
             .WithOne(x => x.Country)
             .HasForeignKey(x => x.CountryId);
+
+        builder.ToTable(tb => tb.HasTrigger("SetCountriesUpdatedAtOnUpdate"));
     }
 }
