@@ -7,6 +7,8 @@ builder.Services.AddWeb();
 
 WebApplication app = builder.Build();
 
+app.UseHttpsRedirection();
+app.UseStaticFiles();
 app.UseAntiforgery();
 app
     .MapRazorComponents<App>()
