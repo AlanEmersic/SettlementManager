@@ -8,7 +8,12 @@
 
 <h3>Settlements</h3>
 
-@if (SettlementService.CurrentResponse is not null)
+@if (SettlementService.CurrentResponse is null || SettlementService.CurrentResponse.TotalCount == 0)
+{
+    <button class="btn btn-primary mb-3" @onclick="SettlementService.OpenAddSettlementModal">Add New Settlement</button>
+}
+
+@if (SettlementService.CurrentResponse is not null && SettlementService.CurrentResponse.TotalCount > 0)
 {
     <div class="input-group mb-3" style="max-width: 300px">
         <input class="form-control" @bind="SettlementService.Search" type="text" placeholder="Search settlements...">
@@ -31,6 +36,7 @@
             <th>Country</th>
             <th>Settlement Name</th>
             <th>Postal Code</th>
+            <th>Actions</th>
         </tr>
         </thead>
         <tbody>
@@ -41,6 +47,9 @@
                 <td>@settlement.Country.Name</td>
                 <td>@settlement.Name</td>
                 <td>@settlement.PostalCode</td>
+                <td>
+                    <button class="btn btn-danger btn-sm" @onclick="() => SettlementService.OpenDeleteConfirmationModal(settlement)">Delete</button>
+                </td>
             </tr>
         }
         </tbody>
@@ -87,12 +96,10 @@ else
                 </div>
                 <div class="modal-body">
                     <EditForm Model="SettlementService.NewSettlement">
-                        <DataAnnotationsValidator />
-                        <ValidationSummary />
+                        <DataAnnotationsValidator/>
+                        <ValidationSummary/>
 
                         <div class="form-group">
-                            @* <label for="countryId">Country</label> *@
-                            @* <InputNumber id="countryId" class="form-control" @bind-Value="SettlementService.NewSettlement.CountryId" /> *@
                             <label for="countrySelect">Country</label>
                             <select id="countrySelect" class="form-control" @bind="@SettlementService.NewSettlement.CountryId">
                                 @if (SettlementService.Countries is not null)
@@ -107,25 +114,48 @@ else
                                     <option disabled>Loading countries...</option>
                                 }
                             </select>
-                            <ValidationMessage For="@(() => SettlementService.NewSettlement.CountryId)" />
+                            <ValidationMessage For="@(() => SettlementService.NewSettlement.CountryId)"/>
                         </div>
 
                         <div class="form-group">
                             <label for="name">Settlement Name</label>
-                            <InputText id="name" class="form-control" @bind-Value="SettlementService.NewSettlement.Name" />
-                            <ValidationMessage For="@(() => SettlementService.NewSettlement.Name)" />
+                            <InputText id="name" class="form-control" @bind-Value="SettlementService.NewSettlement.Name"/>
+                            <ValidationMessage For="@(() => SettlementService.NewSettlement.Name)"/>
                         </div>
 
                         <div class="form-group">
                             <label for="postalCode">Postal Code</label>
-                            <InputText id="postalCode" class="form-control" @bind-Value="SettlementService.NewSettlement.PostalCode" />
-                            <ValidationMessage For="@(() => SettlementService.NewSettlement.PostalCode)" />
+                            <InputText id="postalCode" class="form-control" @bind-Value="SettlementService.NewSettlement.PostalCode"/>
+                            <ValidationMessage For="@(() => SettlementService.NewSettlement.PostalCode)"/>
                         </div>
                     </EditForm>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" @onclick="SettlementService.SaveSettlement">Save</button>
+                    <button type="button" class="btn btn-primary" @onclick="SettlementService.SaveSettlementAsync">Save</button>
                     <button type="button" class="btn btn-secondary" @onclick="SettlementService.CloseAddSettlementModal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (SettlementService.IsDeleteConfirmationModalOpen)
+{
+    <div class="modal show d-block" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Delete Settlement</h5>
+                    <button type="button" class="btn btn-danger" @onclick="SettlementService.CloseDeleteConfirmationModal">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete <span style="font-weight: bold">@SettlementService.SelectedSettlement.Name</span> settlement?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" @onclick="() => SettlementService.DeleteSettlement(SettlementService.SelectedSettlement.Id)">Delete</button>
+                    <button type="button" class="btn btn-secondary" @onclick="SettlementService.CloseDeleteConfirmationModal">Cancel</button>
                 </div>
             </div>
         </div>

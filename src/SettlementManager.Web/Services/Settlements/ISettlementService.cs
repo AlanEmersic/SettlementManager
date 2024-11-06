@@ -15,7 +15,9 @@ public interface ISettlementService
     public SettlementPagedResponse? CurrentResponse { get; protected set; }
     public IReadOnlyList<CountryDto>? Countries { get; protected set; }
     public AddSettlementModel NewSettlement { get; protected set; }
+    public SettlementDto SelectedSettlement { get; protected set; }
     public bool IsAddSettlementModalOpen { get; protected set; }
+    public bool IsDeleteConfirmationModalOpen { get; protected set; }
 
     Task<SettlementPagedResponse?> GetSettlementsAsync(string? search, int pageNumber, int pageSize);
     Task SearchSettlements();
@@ -27,5 +29,9 @@ public interface ISettlementService
     Task<IReadOnlyList<CountryDto>?> GetCountriesAsync();
     Task OpenAddSettlementModal();
     void CloseAddSettlementModal();
-    Task SaveSettlement();
+    Task SaveSettlementAsync();
+
+    void OpenDeleteConfirmationModal(SettlementDto settlement);
+    void CloseDeleteConfirmationModal();
+    Task DeleteSettlement(int id);
 }

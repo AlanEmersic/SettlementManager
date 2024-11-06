@@ -21,7 +21,9 @@ public sealed class SettlementService : ISettlementService
     public SettlementPagedResponse? CurrentResponse { get; set; }
     public IReadOnlyList<CountryDto>? Countries { get; set; } = new List<CountryDto>();
     public AddSettlementModel NewSettlement { get; set; } = new();
+    public SettlementDto SelectedSettlement { get; set; }
     public bool IsAddSettlementModalOpen { get; set; }
+    public bool IsDeleteConfirmationModalOpen { get; set; }
 
     private readonly HttpClient httpClient;
     private readonly ILogger<SettlementService> logger;
@@ -68,18 +70,39 @@ public sealed class SettlementService : ISettlementService
         }
     }
 
-    public async Task SaveSettlement()
+    public async Task SaveSettlementAsync()
     {
         try
         {
             string requestUri = "api/Settlements";
             CreateSettlementRequest request = new(NewSettlement.CountryId, NewSettlement.Name, NewSettlement.PostalCode);
 
-            HttpResponseMessage resposne = await httpClient.PostAsJsonAsync(requestUri, request!);
+            HttpResponseMessage responseMessage = await httpClient.PostAsJsonAsync(requestUri, request);
 
-            if (resposne.IsSuccessStatusCode)
+            if (responseMessage.IsSuccessStatusCode)
             {
                 CloseAddSettlementModal();
+            }
+
+            await GetSettlementsAsync(Search, PageNumber, PageSize);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, ex.Message);
+        }
+    }
+
+    public async Task DeleteSettlementAsync(int id)
+    {
+        try
+        {
+            string requestUri = $"api/Settlements?id={id}";
+
+            HttpResponseMessage responseMessage = await httpClient.DeleteAsync(requestUri);
+
+            if (responseMessage.IsSuccessStatusCode)
+            {
+                CloseDeleteConfirmationModal();
             }
 
             await GetSettlementsAsync(Search, PageNumber, PageSize);
@@ -152,5 +175,26 @@ public sealed class SettlementService : ISettlementService
     {
         IsAddSettlementModalOpen = false;
         NewSettlement = new AddSettlementModel();
+    }
+
+    public void OpenDeleteConfirmationModal(SettlementDto settlement)
+    {
+        SelectedSettlement = settlement;
+        IsDeleteConfirmationModalOpen = true;
+        OnDataChanged?.Invoke();
+    }
+
+    public void CloseDeleteConfirmationModal()
+    {
+        IsDeleteConfirmationModalOpen = false;
+        OnDataChanged?.Invoke();
+    }
+
+    public async Task DeleteSettlement(int id)
+    {
+        IsDeleteConfirmationModalOpen = false;
+
+        await DeleteSettlementAsync(id);
+        OnDataChanged?.Invoke();
     }
 }
