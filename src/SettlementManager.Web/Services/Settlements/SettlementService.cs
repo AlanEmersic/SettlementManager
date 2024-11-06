@@ -178,10 +178,10 @@ public sealed class SettlementService : ISettlementService
         OnDataChanged?.Invoke();
     }
 
-    public async Task ChangePageSize(ChangeEventArgs changeEvent)
+    public async Task ChangePageSize(int pageSize)
     {
         PageNumber = 1;
-        PageSize = int.Parse(changeEvent.Value!.ToString()!);
+        PageSize = pageSize;
 
         await GetSettlementsAsync(Search, PageNumber, PageSize);
         OnDataChanged?.Invoke();
