@@ -1,141 +1,40 @@
 ﻿using SettlementManager.Application.Settlements.DTO;
-using SettlementManager.Application.Settlements.Requests;
-using SettlementManager.Infrastructure.Persistence.Settlements.Queries.GetSettlements;
 using SettlementManager.Web.Models;
 
 namespace SettlementManager.Web.Services.Settlements;
 
-public sealed class SettlementService : ISettlementService
+internal sealed class SettlementService : ISettlementService
 {
     public int PageSize { get; set; } = 10;
-    public int PageNumber { get; set; } = 1;
+    public int PageNumber { get; private set; } = 1;
     public string? Search { get; set; }
 
     public Action? OnDataChanged { get; set; } = delegate { };
-    public SettlementPagedResponse? CurrentResponse { get; set; }
+    public SettlementPagedDto? CurrentResponse { get; set; }
     public IReadOnlyList<CountryDto>? Countries { get; set; } = new List<CountryDto>();
-    public AddSettlementModel NewSettlement { get; set; } = new();
+    public AddSettlementModel AddSettlement { get; set; } = new();
     public EditSettlementModel EditSettlement { get; set; } = null!;
     public SettlementDto SelectedSettlement { get; set; } = null!;
     public bool IsAddSettlementModalOpen { get; set; }
     public bool IsEditSettlementModalOpen { get; set; }
     public bool IsDeleteConfirmationModalOpen { get; set; }
 
-    private readonly HttpClient httpClient;
-    private readonly ILogger<SettlementService> logger;
+    private readonly ISettlementApiService settlementApiService;
 
-    public SettlementService(HttpClient httpClient, ILogger<SettlementService> logger)
+    public SettlementService(ISettlementApiService settlementApiService)
     {
-        this.httpClient = httpClient;
-        this.logger = logger;
-    }
-
-    public async Task<SettlementPagedResponse?> GetSettlementsAsync(string? search, int pageNumber, int pageSize)
-    {
-        try
-        {
-            string requestUri = $"api/Settlements?search={search}&pageNumber={pageNumber}&pageSize={pageSize}";
-
-            SettlementPagedResponse? response = await httpClient.GetFromJsonAsync<SettlementPagedResponse?>(requestUri);
-            CurrentResponse = response;
-
-            return response;
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, ex.Message);
-            return null;
-        }
-    }
-
-    public async Task<IReadOnlyList<CountryDto>?> GetCountriesAsync()
-    {
-        try
-        {
-            string requestUri = "api/Countries";
-
-            IReadOnlyList<CountryDto>? response = await httpClient.GetFromJsonAsync<IReadOnlyList<CountryDto>?>(requestUri);
-            Countries = response;
-
-            return response;
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, ex.Message);
-            return null;
-        }
-    }
-
-    public async Task SaveSettlementAsync()
-    {
-        try
-        {
-            string requestUri = "api/Settlements";
-            CreateSettlementRequest request = new(NewSettlement.CountryId, NewSettlement.Name, NewSettlement.PostalCode);
-
-            HttpResponseMessage responseMessage = await httpClient.PostAsJsonAsync(requestUri, request);
-
-            if (responseMessage.IsSuccessStatusCode)
-            {
-                CloseAddSettlementModal();
-                await GetSettlementsAsync(Search, PageNumber, PageSize);
-            }
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, ex.Message);
-        }
-    }
-
-    private async Task UpdateSettlementAsync()
-    {
-        try
-        {
-            string requestUri = "api/Settlements";
-            UpdateSettlementRequest request = new(EditSettlement.Id, EditSettlement.CountryId, EditSettlement.Name, EditSettlement.PostalCode);
-
-            HttpResponseMessage responseMessage = await httpClient.PutAsJsonAsync(requestUri, request);
-
-            if (responseMessage.IsSuccessStatusCode)
-            {
-                CloseEditSettlementModal();
-            }
-
-            await GetSettlementsAsync(Search, PageNumber, PageSize);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, ex.Message);
-        }
-    }
-
-    private async Task DeleteSettlementAsync(int id)
-    {
-        try
-        {
-            string requestUri = $"api/Settlements?id={id}";
-
-            HttpResponseMessage responseMessage = await httpClient.DeleteAsync(requestUri);
-
-            if (responseMessage.IsSuccessStatusCode)
-            {
-                CloseDeleteConfirmationModal();
-            }
-
-            await GetSettlementsAsync(Search, PageNumber, PageSize);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, ex.Message);
-        }
+        this.settlementApiService = settlementApiService;
     }
 
     public async Task SearchSettlements()
     {
-        PageNumber = 1;
+        await LoadSettlements();
+    }
 
-        await GetSettlementsAsync(Search, PageNumber, PageSize);
-        OnDataChanged?.Invoke();
+    public async Task FirstPage()
+    {
+        PageNumber = 1;
+        await LoadSettlements();
     }
 
     public async Task NextPage()
@@ -146,9 +45,7 @@ public sealed class SettlementService : ISettlementService
         }
 
         PageNumber++;
-
-        await GetSettlementsAsync(Search, PageNumber, PageSize);
-        OnDataChanged?.Invoke();
+        await LoadSettlements();
     }
 
     public async Task PreviousPage()
@@ -159,46 +56,54 @@ public sealed class SettlementService : ISettlementService
         }
 
         PageNumber--;
-
-        await GetSettlementsAsync(Search, PageNumber, PageSize);
-        OnDataChanged?.Invoke();
+        await LoadSettlements();
     }
 
     public async Task LastPage()
     {
         PageNumber = CurrentResponse!.PageCount;
-
-        await GetSettlementsAsync(Search, PageNumber, PageSize);
-        OnDataChanged?.Invoke();
+        await LoadSettlements();
     }
 
     public async Task ChangePageSize(int pageSize)
     {
         PageNumber = 1;
         PageSize = pageSize;
-
-        await GetSettlementsAsync(Search, PageNumber, PageSize);
-        OnDataChanged?.Invoke();
+        await LoadSettlements();
     }
 
     public async Task OpenAddSettlementModal()
     {
         IsAddSettlementModalOpen = true;
 
-        await GetCountriesAsync();
+        if (Countries is null || Countries.Count == 0)
+        {
+            Countries = await settlementApiService.GetCountriesAsync();
+        }
     }
 
     public void CloseAddSettlementModal()
     {
         IsAddSettlementModalOpen = false;
-        NewSettlement = new AddSettlementModel();
+        AddSettlement = new AddSettlementModel();
+    }
+
+    public async Task SaveNewSettlement()
+    {
+        HttpResponseMessage responseMessage = await settlementApiService.SaveSettlementAsync(AddSettlement);
+
+        if (responseMessage.IsSuccessStatusCode)
+        {
+            CloseAddSettlementModal();
+            CurrentResponse = await settlementApiService.GetSettlementsAsync(Search, PageNumber, PageSize);
+        }
     }
 
     public async Task OpenEditSettlementModal(SettlementDto settlement)
     {
         if (Countries is null || Countries.Count == 0)
         {
-            Countries = await GetCountriesAsync();
+            Countries = await settlementApiService.GetCountriesAsync();
         }
 
         EditSettlement = new EditSettlementModel(settlement.Id, settlement.Name, settlement.PostalCode, settlement.Country.Id);
@@ -216,8 +121,14 @@ public sealed class SettlementService : ISettlementService
     {
         IsEditSettlementModalOpen = false;
 
-        await UpdateSettlementAsync();
-        OnDataChanged?.Invoke();
+        HttpResponseMessage responseMessage = await settlementApiService.UpdateSettlementAsync(EditSettlement);
+
+        if (responseMessage.IsSuccessStatusCode)
+        {
+            CloseEditSettlementModal();
+        }
+
+        await LoadSettlements();
     }
 
     public void OpenDeleteConfirmationModal(SettlementDto settlement)
@@ -237,7 +148,19 @@ public sealed class SettlementService : ISettlementService
     {
         IsDeleteConfirmationModalOpen = false;
 
-        await DeleteSettlementAsync(SelectedSettlement.Id);
+        HttpResponseMessage responseMessage = await settlementApiService.DeleteSettlementAsync(SelectedSettlement.Id);
+
+        if (responseMessage.IsSuccessStatusCode)
+        {
+            CloseDeleteConfirmationModal();
+        }
+
+        await LoadSettlements();
+    }
+
+    private async Task LoadSettlements()
+    {
+        CurrentResponse = await settlementApiService.GetSettlementsAsync(Search, PageNumber, PageSize);
         OnDataChanged?.Invoke();
     }
 }

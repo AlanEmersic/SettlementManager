@@ -1,5 +1,4 @@
 ﻿using SettlementManager.Application.Settlements.DTO;
-using SettlementManager.Infrastructure.Persistence.Settlements.Queries.GetSettlements;
 using SettlementManager.Web.Models;
 
 namespace SettlementManager.Web.Services.Settlements;
@@ -7,20 +6,19 @@ namespace SettlementManager.Web.Services.Settlements;
 public interface ISettlementService
 {
     public int PageSize { get; set; }
-    public int PageNumber { get; set; }
     public string? Search { get; set; }
     public Action? OnDataChanged { get; set; }
-    public SettlementPagedResponse? CurrentResponse { get; protected set; }
+    public SettlementPagedDto? CurrentResponse { get; protected set; }
     public IReadOnlyList<CountryDto>? Countries { get; protected set; }
-    public AddSettlementModel NewSettlement { get; protected set; }
+    public AddSettlementModel AddSettlement { get; protected set; }
     public EditSettlementModel EditSettlement { get; protected set; }
     public SettlementDto SelectedSettlement { get; protected set; }
     public bool IsAddSettlementModalOpen { get; protected set; }
     public bool IsEditSettlementModalOpen { get; protected set; }
     public bool IsDeleteConfirmationModalOpen { get; protected set; }
 
-    Task<SettlementPagedResponse?> GetSettlementsAsync(string? search, int pageNumber, int pageSize);
     Task SearchSettlements();
+    Task FirstPage();
     Task NextPage();
     Task PreviousPage();
     Task LastPage();
@@ -28,7 +26,7 @@ public interface ISettlementService
 
     Task OpenAddSettlementModal();
     void CloseAddSettlementModal();
-    Task SaveSettlementAsync();
+    Task SaveNewSettlement();
 
     Task OpenEditSettlementModal(SettlementDto settlement);
     void CloseEditSettlementModal();
