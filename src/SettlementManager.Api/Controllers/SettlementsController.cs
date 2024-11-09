@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using SettlementManager.Application.Settlements.Commands.CreateSettlement;
 using SettlementManager.Application.Settlements.Commands.DeleteSettlement;
 using SettlementManager.Application.Settlements.Commands.UpdateSettlementCommand;
+using SettlementManager.Application.Settlements.DTO;
 using SettlementManager.Application.Settlements.Mappings;
 using SettlementManager.Application.Settlements.Requests;
 using SettlementManager.Infrastructure.Persistence.Settlements.Queries.GetSettlements;
@@ -24,7 +25,7 @@ public sealed class SettlementsController : ApiController
     public async Task<IActionResult> GetSettlements(string? search, int pageNumber = 1, int pageSize = 10)
     {
         GetSettlementsQuery query = new(search, pageNumber, pageSize);
-        ErrorOr<SettlementPagedResponse> result = await mediator.Send(query);
+        ErrorOr<SettlementPagedDto> result = await mediator.Send(query);
 
         return result.Match(Ok, Problem);
     }

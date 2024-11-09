@@ -1,5 +1,4 @@
 ﻿@using SettlementManager.Application.Settlements.DTO
-@using SettlementManager.Infrastructure.Persistence.Settlements.Queries.GetSettlements
 
 @if (CurrentResponse is not null && CurrentResponse.TotalCount > 0)
 {
@@ -39,7 +38,7 @@
 
     <div class="pagination justify-content-center">
         <li class="page-item">
-            <button class="page-link" @onclick="SearchSettlements" disabled="@(!CurrentResponse!.HasPreviousPage)">First</button>
+            <button class="page-link" @onclick="FirstPage" disabled="@(!CurrentResponse!.HasPreviousPage)">First</button>
         </li>
         <li class="page-item">
             <button class="page-link" @onclick="PreviousPage" disabled="@(!CurrentResponse!.HasPreviousPage)">Previous</button>
@@ -66,7 +65,7 @@ else
 }
 
 @code {
-    [Parameter] public SettlementPagedResponse? CurrentResponse { get; set; }
+    [Parameter] public SettlementPagedDto? CurrentResponse { get; set; }
 
     [Parameter] public int PageSize { get; set; }
 
@@ -79,6 +78,8 @@ else
     [Parameter] public EventCallback<SettlementDto> OnDeleteSettlement { get; set; }
 
     [Parameter] public EventCallback OnSearchSettlements { get; set; }
+
+    [Parameter] public EventCallback OnFirstPage { get; set; }
 
     [Parameter] public EventCallback OnNextPage { get; set; }
 
@@ -101,6 +102,8 @@ else
     private async Task OpenDeleteConfirmationModal(SettlementDto settlement) => await OnDeleteSettlement.InvokeAsync(settlement);
 
     private async Task SearchSettlements() => await OnSearchSettlements.InvokeAsync();
+
+    private async Task FirstPage() => await OnFirstPage.InvokeAsync();
 
     private async Task NextPage() => await OnNextPage.InvokeAsync();
 
