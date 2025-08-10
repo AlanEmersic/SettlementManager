@@ -48,7 +48,6 @@ public static class InfrastructureExtensions
     {
         services.AddMediatR(options => options.RegisterServicesFromAssemblyContaining(typeof(InfrastructureExtensions)));
 
-        services.AddProblemDetails();
         services.AddHttpContextAccessor();
     }
 
