@@ -5,6 +5,8 @@ The Settlement Manager is a Blazor application designed to manage settlements wi
 It supports paginated views of settlements, modal-based add, edit, and delete functionality, and integrates with an ASP.NET Core Web API for backend operations. <br>
 This application uses clean architecture principles with domain driven design and the use of Entity Framework Core, MediatR for CQRS, and asynchronous operations.
 
+![image alt](https://github.com/AlanEmersic/SettlementManager/blob/02d08ff70fd104ad8a316ed181a23155b6c39199/images/image.png)
+
 # Project Structure
 ```bash
 SettlementManager
